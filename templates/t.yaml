@@ -5,7 +5,7 @@ updates:
   - from: "13:00"
     to: "15:00"
 
-tracker:
+trackers:
   - code: "hk000700" # 股市编码
     frequency: "5s" # 轮循频次，最低5s (可选单位 s:秒 m:分钟 h:小时)
     continuous: 9 # 轮询频次内连续上涨/下跌x次时弹出提示

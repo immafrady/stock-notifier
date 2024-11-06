@@ -51,7 +51,7 @@ var initCmd = &cobra.Command{
 
 		err = os.WriteFile(path, []byte(tmpl), 0644)
 		utils.PanicOnError(err)
-		log.Println("成功写入文件，请编辑配置文件后运行程序")
+		log.Printf("成功创建文件\n[路径]:%s\n\n请编辑配置文件后运行程序", path)
 	},
 }
 
