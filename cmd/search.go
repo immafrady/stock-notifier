@@ -1,10 +1,8 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
-	"fmt"
+	"github.com/immafrady/stock-notifier/internal/search"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -12,10 +10,16 @@ import (
 // searchCmd represents the search command
 var searchCmd = &cobra.Command{
 	Use:   "search",
-	Short: "查询股票的代码",
+	Short: "查询股票的代码（支持多个）",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("search called")
+		if len(args) == 0 {
+			log.Fatalln("[error]请输入至少一个查询条件，用空格隔开")
+		}
+
+		for _, arg := range args {
+			search.Find(arg)
+		}
 	},
 }
 

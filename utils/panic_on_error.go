@@ -4,6 +4,6 @@ import "log"
 
 func PanicOnError(err error) {
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("[error]", err)
 	}
 }

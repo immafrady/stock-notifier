@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -49,7 +46,7 @@ var initCmd = &cobra.Command{
 			tmpl = templates.YamlTmpl
 			path = path2.Join(path, "config.yaml")
 		default:
-			panic(errors.New("仅支持jsonc和yaml格式"))
+			log.Fatalln("[error]仅支持jsonc和yaml格式")
 		}
 
 		err = os.WriteFile(path, []byte(tmpl), 0644)

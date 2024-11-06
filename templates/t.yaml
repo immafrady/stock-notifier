@@ -1,5 +1,5 @@
 # 更新时间段
-update:
+updates:
   - from: "09:00"
     to: "11:30"
   - from: "13:00"
@@ -11,4 +11,4 @@ tracker:
     continuous: 9 # 轮询频次内连续上涨/下跌x次时弹出提示
     priceDiff: 1 # 两次轮询【差价】超过该数值时弹出提示
     percentDiff: 1 # 两次轮询【相差百分比】超过该数值时弹出提示
-    update: null # 更新时间段（不传时取默认值）
+    updates: null # 更新时间段（不传时取默认值）
