@@ -12,9 +12,8 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "stock-notifier",
-	Short: "📈股票通知📢",
-	Long: `监听你关心的股票，并贴心弹出通知
-	注意：数据不会被持久化哦
+	Short: "",
+	Long: `📈股票通知📢：监听你关心的股票，并贴心弹出通知（注意：数据不会被持久化哦）
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
