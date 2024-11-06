@@ -1,8 +1,6 @@
 package core
 
 import (
-	"errors"
-	"fmt"
 	"github.com/immafrady/stock-notifier/utils"
 	"github.com/marcozac/go-jsonc"
 	"gopkg.in/yaml.v3"
@@ -38,7 +36,7 @@ func newYamlConfig(bytes []byte) (c *Config) {
 		return c
 	}
 
-	utils.PanicOnError(errors.New(fmt.Sprintf("配置文件格式错误: %s", err.Error())))
+	utils.PanicOnError(err, "配置yaml文件格式错误")
 	return
 }
 
@@ -48,7 +46,8 @@ func newJsoncConfig(bytes []byte) (c *Config) {
 	if err == nil {
 		return c
 	}
-	utils.PanicOnError(err)
+
+	utils.PanicOnError(err, "配置json文件格式错误")
 	return
 }
 
@@ -59,13 +58,13 @@ func NewConfig(p string) *Config {
 		data []byte
 	)
 	p, err = filepath.Abs(p)
-	utils.PanicOnError(err)
+	utils.PanicOnError(err, "获取绝对路径失败")
 
 	data, err = utils.ReadFile(p)
-	utils.PanicOnError(err)
+	utils.PanicOnError(err, "读取文件失败")
 
 	p = strings.ToLower(p)
-	if strings.HasSuffix(p, "jsonc") {
+	if strings.HasSuffix(p, "jsonc") || strings.HasSuffix(p, "json") {
 		return newJsoncConfig(data)
 	} else if strings.HasSuffix(p, "yaml") || strings.HasSuffix(p, "yml") {
 		return newYamlConfig(data)

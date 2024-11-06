@@ -24,13 +24,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(core.NewConfig(cfgFile))
-
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
-	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "./config.jsonc", "配置文件路径 (默认是 ./config.jsonc)")
+	runCmd.Flags().StringVarP(&cfgFile, "config", "c", "./config.jsonc", "配置文件路径 (默认是 ./config.jsonc)")
 
 	// Here you will define your flags and configuration settings.
 

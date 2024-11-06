@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"github.com/immafrady/stock-notifier/templates"
 	"github.com/immafrady/stock-notifier/utils"
 	"github.com/spf13/cobra"
@@ -24,16 +23,16 @@ var initCmd = &cobra.Command{
 		var err error
 		if p == "" {
 			path, err = os.Getwd()
-			utils.PanicOnError(err)
+			utils.PanicOnError(err, "获取工作目录失败")
 		} else {
 			path, err = filepath.Abs(p)
-			utils.PanicOnError(err)
+			utils.PanicOnError(err, "获取绝对路径失败")
 
 			info, err := os.Stat(path)
-			utils.PanicOnError(err)
+			utils.PanicOnError(err, "获取文件信息失败")
 
 			if !info.IsDir() {
-				panic(errors.New("请输入文件夹的路径"))
+				log.Fatalln("请输入文件夹的路径")
 			}
 		}
 
@@ -50,7 +49,7 @@ var initCmd = &cobra.Command{
 		}
 
 		err = os.WriteFile(path, []byte(tmpl), 0644)
-		utils.PanicOnError(err)
+		utils.PanicOnError(err, "写入文件失败")
 		log.Printf("成功创建文件\n[路径]:%s\n\n请编辑配置文件后运行程序", path)
 	},
 }
