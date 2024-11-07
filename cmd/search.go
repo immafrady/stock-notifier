@@ -17,9 +17,7 @@ var searchCmd = &cobra.Command{
 			log.Fatalln("[error]请输入至少一个查询条件，用空格隔开")
 		}
 
-		for _, arg := range args {
-			search.Find(arg)
-		}
+		search.FindAll(args)
 	},
 }
 
