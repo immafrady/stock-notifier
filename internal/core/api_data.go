@@ -16,14 +16,24 @@ import (
 type ApiData struct {
 	Name            string    // 名字
 	Exchange        string    // 市场
-	Current         float32   // 当前价
-	Opening         float32   // 开盘价
-	YesterdayClosed float32   // 昨日收盘价
-	Low             float32   // 当日最低
-	High            float32   // 当日最高
-	Diff            float32   // 当日差价
-	Percentage      float32   // 当前涨跌幅
+	Classify        string    // 分类
+	Current         float64   // 当前价
+	Opening         float64   // 开盘价
+	YesterdayClosed float64   // 昨日收盘价
+	Low             float64   // 当日最低
+	High            float64   // 当日最高
+	Diff            float64   // 当日差价
+	Percentage      float64   // 当前涨跌幅
 	UpdateAt        time.Time // 更新时间
+}
+
+// ParsePrice 格式化价格
+func (a ApiData) ParsePrice(v float64) string {
+	prec := 2
+	if a.Classify == "LOF" || a.Classify == "ETF" {
+		prec = 3
+	}
+	return strconv.FormatFloat(v, 'f', prec, 64)
 }
 
 func NewApiData(searchCode string) *ApiData {
@@ -46,13 +56,13 @@ func NewApiData(searchCode string) *ApiData {
 		strs := strings.Split(str, "~")
 
 		data.Name = strs[1]
-		data.Opening = parseFloat32(strs[5])
-		data.YesterdayClosed = parseFloat32(strs[4])
-		data.Current = parseFloat32(strs[3])
-		data.High = parseFloat32(strs[33])
-		data.Low = parseFloat32(strs[34])
+		data.Opening = parsefloat64(strs[5])
+		data.YesterdayClosed = parsefloat64(strs[4])
+		data.Current = parsefloat64(strs[3])
+		data.High = parsefloat64(strs[33])
+		data.Low = parsefloat64(strs[34])
 		data.Diff = data.Current - data.YesterdayClosed
-		data.Percentage = parseFloat32(strs[32])
+		data.Percentage = parsefloat64(strs[32])
 
 		var (
 			timeTmpl string
@@ -62,6 +72,7 @@ func NewApiData(searchCode string) *ApiData {
 		case "sh", "sz":
 			// 20241107151312
 			timeTmpl = "20060102150405"
+			data.Classify = strs[61] // 补充一下分类，如果是ETF、LOF做特殊处理
 		case "hk":
 			// 2024/11/07 14:58:20
 			timeTmpl = "2006/01/02 15:04:05"
@@ -81,10 +92,10 @@ func NewApiData(searchCode string) *ApiData {
 
 }
 
-func parseFloat32(str string) float32 {
+func parsefloat64(str string) float64 {
 	f64, err := strconv.ParseFloat(str, 32)
 	if err != nil {
 		log.Printf("[error]数字转化错误 - %v: %s", str, err)
 	}
-	return float32(f64)
+	return f64
 }

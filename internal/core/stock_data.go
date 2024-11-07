@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/immafrady/stock-notifier/utils"
 	"log"
 	"strconv"
 	"sync"
@@ -14,43 +15,43 @@ type StockData struct {
 	Frequency int            // 格式化后的更新频率
 	MaxLogs   int            // 最多的log数
 	ApiData   *ApiData       // 单词数据
-	Tracker   *ConfigTracker // 配置
+	Config    *ConfigTracker // 配置
+	Tracker   *Tracker
 	PriceLogs []*PriceLog
 }
 
 // PriceLog 价格日志
 type PriceLog struct {
 	Timestamp time.Time `json:"timestamp"`
-	Price     float32   `json:"price"`
+	Price     float64   `json:"price"`
 }
 
 // NewStockData 新建一个
-func NewStockData(t *ConfigTracker) *StockData {
+func NewStockData(c *ConfigTracker) *StockData {
 	data := &StockData{
-		Tracker: t,
+		Config: c,
 	}
 	{
 		// 处理缓存数
-		if t.Continuous > 2 {
-			data.MaxLogs = t.Continuous
+		if c.Continuous > 2 {
+			data.MaxLogs = c.Continuous
 		} else {
 			data.MaxLogs = 2 // 默认两个才能发生比较
 		}
-		data.PriceLogs = make([]*PriceLog, data.MaxLogs)
 	}
 	{
 		var setDefaultFrequency = func() {
 			data.Frequency = 1
-			log.Printf("[error]【%s】转换错误,将取默认值:1", t.Frequency)
+			log.Printf("[error]【%s】转换错误,将取默认值:1", c.Frequency)
 		}
 
 		// 处理更新频率
-		if len(t.Frequency) < 2 {
+		if len(c.Frequency) < 2 {
 			setDefaultFrequency()
 		} else {
-			l := len(t.Frequency)
-			unit := t.Frequency[l-1]
-			valueStr := t.Frequency[:l-1]
+			l := len(c.Frequency)
+			unit := c.Frequency[l-1]
+			valueStr := c.Frequency[:l-1]
 			value, err := strconv.Atoi(valueStr)
 			if err != nil {
 				setDefaultFrequency()
@@ -81,12 +82,12 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 		// 根据频率判断
 		return true
 	}
-	if s.Tracker.Updates != nil {
+	if s.Config.Updates != nil {
 		if s.ApiData != nil {
 			// 如果有获取过数据，以获取数据时为准
 			t = s.ApiData.UpdateAt
 		}
-		for _, update := range s.Tracker.Updates {
+		for _, update := range s.Config.Updates {
 			from, to := update.Range()
 			if t.After(from) && t.Before(to) {
 				return true
@@ -102,9 +103,9 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 
 // Update 核心更新逻辑
 func (s *StockData) Update() {
-	fmt.Println(s.Tracker.Code)
+	fmt.Println(s.Config.Code)
 	if s.mutex.TryLock() {
-		apiData := NewApiData(s.Tracker.Code)
+		apiData := NewApiData(s.Config.Code)
 		if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) {
 			// 只有当更新时间大于最新时间时，才会取更新
 			s.ApiData = apiData
@@ -116,8 +117,23 @@ func (s *StockData) Update() {
 			if len(s.PriceLogs) > s.MaxLogs {
 				s.PriceLogs = s.PriceLogs[:s.MaxLogs]
 			}
+			// 开始触发监控
+			s.TrackPercentDiff()
+			s.TrackPriceDiff()
+			s.TrackContinuous()
+			s.TrackTargetPrice()
 		}
 		fmt.Println(apiData)
 	}
 	s.mutex.Unlock()
+}
+
+// Shout 发送通知
+func (s *StockData) Shout(title, message string) {
+	base := fmt.Sprintf("【%s-%s(%.2f%%)】: ",
+		s.ApiData.Name,
+		s.ApiData.ParsePrice(s.ApiData.Current),
+		s.ApiData.Percentage,
+	)
+	utils.Notify(base+title, message)
 }
