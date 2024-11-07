@@ -29,7 +29,8 @@ type PriceLog struct {
 // NewStockData 新建一个
 func NewStockData(c *ConfigTracker) *StockData {
 	data := &StockData{
-		Config: c,
+		Config:  c,
+		Tracker: &Tracker{},
 	}
 	{
 		// 处理缓存数
