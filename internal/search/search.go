@@ -8,7 +8,6 @@ import (
 
 func find(condition string) {
 	str := utils.Request("https://smartbox.gtimg.cn/s3/?v=2&t=all&c=1&q=" + condition)
-
 	infos := NewStockInfos(condition, str)
 
 	if infos != nil {

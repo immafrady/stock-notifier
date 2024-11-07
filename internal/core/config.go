@@ -5,13 +5,38 @@ import (
 	"github.com/marcozac/go-jsonc"
 	"gopkg.in/yaml.v3"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
+
+// TimeString 短的时间戳
+type TimeString string
+
+func (t TimeString) Get() (h, m int) {
+	strs := strings.Split(string(t), ":")
+	if len(strs) != 2 {
+		return 0, 0
+	} else {
+		h, _ = strconv.Atoi(strs[0])
+		m, _ = strconv.Atoi(strs[1])
+		return
+	}
+}
 
 // ConfigUpdate 更新时间段
 type ConfigUpdate struct {
-	From string `json:"from" yaml:"from"`
-	To   string `json:"to" yaml:"to"`
+	From TimeString `json:"from" yaml:"from"`
+	To   TimeString `json:"to" yaml:"to"`
+}
+
+func (u ConfigUpdate) Range() (from, to time.Time) {
+	now := time.Now()
+	year, month, day := now.Date()
+	fh, fm := u.From.Get()
+	th, tm := u.To.Get()
+	return time.Date(year, month, day, fh, fm, 0, 0, now.Location()),
+		time.Date(year, month, day, th, tm, 0, 0, now.Location())
 }
 
 // ConfigTracker 跟踪股票配置
@@ -19,8 +44,8 @@ type ConfigTracker struct {
 	Code        string          `json:"code" yaml:"code"`                 // 股市编码
 	Frequency   string          `json:"frequency" yaml:"frequency"`       // 轮循频次，最低5s (可选单位 s:秒 m:分钟 h:小时)
 	Continuous  int             `json:"continuous" yaml:"continuous"`     // 轮询频次内连续上涨/下跌x次时弹出提示
-	PriceDiff   int             `json:"priceDiff" yaml:"priceDiff"`       // 两次轮询【差价】超过该数值时弹出提示
-	PercentDiff int             `json:"percentDiff" yaml:"percentDiff"`   // 两次轮询【相差百分比】超过该数值时弹出提示
+	PriceDiff   float32         `json:"priceDiff" yaml:"priceDiff"`       // 两次轮询【差价】超过该数值时弹出提示
+	PercentDiff float32         `json:"percentDiff" yaml:"percentDiff"`   // 两次轮询【相差百分比】超过该数值时弹出提示
 	Updates     []*ConfigUpdate `json:"updates,omitempty" yaml:"updates"` // 更新时间段（不传时取默认值）
 }
 
@@ -52,7 +77,7 @@ func newJsoncConfig(bytes []byte) (c *Config) {
 }
 
 // NewConfig 新配置
-func NewConfig(p string) *Config {
+func NewConfig(p string) (c *Config) {
 	var (
 		err  error
 		data []byte
@@ -64,11 +89,20 @@ func NewConfig(p string) *Config {
 	utils.PanicOnError(err, "读取文件失败")
 
 	p = strings.ToLower(p)
+
 	if strings.HasSuffix(p, "jsonc") || strings.HasSuffix(p, "json") {
-		return newJsoncConfig(data)
+		c = newJsoncConfig(data)
 	} else if strings.HasSuffix(p, "yaml") || strings.HasSuffix(p, "yml") {
-		return newYamlConfig(data)
+		c = newYamlConfig(data)
 	} else {
 		return nil
 	}
+
+	// 将更新时间附上
+	for _, tracker := range c.Trackers {
+		if tracker.Updates == nil {
+			tracker.Updates = c.Updates
+		}
+	}
+	return
 }
