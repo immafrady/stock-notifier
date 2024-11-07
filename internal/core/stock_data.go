@@ -104,7 +104,6 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 
 // Update 核心更新逻辑
 func (s *StockData) Update() {
-	fmt.Println(s.Config.Code)
 	if s.mutex.TryLock() {
 		apiData := NewApiData(s.Config.Code)
 		if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) {
@@ -125,14 +124,13 @@ func (s *StockData) Update() {
 			s.TrackTargetHighPrice()
 			s.TrackTargetLowPrice()
 		}
-		fmt.Println(apiData)
 	}
 	s.mutex.Unlock()
 }
 
 // Shout 发送通知
 func (s *StockData) Shout(title, message string) {
-	base := fmt.Sprintf("【%s-%s(%.2f%%)】: ",
+	base := fmt.Sprintf("【%s %s(%.2f%%)】: ",
 		s.ApiData.Name,
 		s.ApiData.ParsePrice(s.ApiData.Current),
 		s.ApiData.Percentage,

@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/immafrady/stock-notifier/utils"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -43,7 +42,6 @@ func NewApiData(searchCode string) *ApiData {
 	reader := transform.NewReader(bytes.NewReader([]byte(str)), simplifiedchinese.GBK.NewDecoder())
 	d, _ := io.ReadAll(reader)
 	str = string(d)
-	fmt.Println(str)
 
 	if strings.HasPrefix(str, "v_pv_none_match") {
 		return nil

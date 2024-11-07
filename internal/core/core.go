@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/immafrady/stock-notifier/utils"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -41,7 +42,10 @@ func Run(c *Config) {
 		// 初始化更新
 		core.Updates(time.Now(), true)
 		utils.Notify("开始监控以下股票", strings.Join(searchCodes, ","))
-
+		log.Println("项目已运行，如无消息弹出，请检查消息是否被屏蔽")
+		if runtime.GOOS == "darwin" {
+			log.Println("mac系统请将【脚本编辑器】的消息权限打开，并将其添加到勿扰模式的白名单中")
+		}
 		for {
 			select {
 			case t := <-core.ticker.C:
