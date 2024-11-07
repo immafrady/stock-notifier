@@ -121,7 +121,8 @@ func (s *StockData) Update() {
 			s.TrackPercentDiff()
 			s.TrackPriceDiff()
 			s.TrackContinuous()
-			s.TrackTargetPrice()
+			s.TrackTargetHighPrice()
+			s.TrackTargetLowPrice()
 		}
 		fmt.Println(apiData)
 	}
