@@ -5,19 +5,21 @@ import (
 	"github.com/immafrady/stock-notifier/utils"
 	"log"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 // StockData 完整数据
 type StockData struct {
-	mutex     sync.Mutex
-	Frequency int            // 格式化后的更新频率
-	MaxLogs   int            // 最多的log数
-	ApiData   *ApiData       // 单词数据
-	Config    *ConfigTracker // 配置
-	Tracker   *Tracker
-	PriceLogs []*PriceLog
+	mutex       sync.Mutex
+	Frequency   int            // 格式化后的更新频率
+	PercentDiff float64        // 格式化后的百分比差额
+	MaxLogs     int            // 最多的log数
+	ApiData     *ApiData       // 单词数据
+	Config      *ConfigTracker // 配置
+	Tracker     *Tracker
+	PriceLogs   []*PriceLog
 }
 
 // PriceLog 价格日志
@@ -31,6 +33,14 @@ func NewStockData(c *ConfigTracker) *StockData {
 	data := &StockData{
 		Config:  c,
 		Tracker: &Tracker{},
+	}
+	{
+		// 处理百分比
+		percent := strings.TrimSuffix(c.PercentDiff, "%")
+		value, err := strconv.ParseFloat(percent, 64)
+		if err == nil {
+			data.PercentDiff = value / 100
+		}
 	}
 	{
 		// 处理缓存数
