@@ -3,13 +3,14 @@ package core
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 type Tracker struct {
 	welcome         bool
 	priceDiff       bool
 	percentDiff     bool
-	continuous      bool
+	continuous      bool // deprecated
 	targetHighPrice bool
 	targetLowPrice  bool
 }
@@ -68,33 +69,40 @@ func (s *StockData) TrackPercentDiff() {
 func (s *StockData) TrackContinuous() {
 	l := len(s.PriceLogs)
 	if s.Config.Continuous > 2 && l == s.Config.Continuous {
-		prev := s.PriceLogs[0].Price
-		curr := s.PriceLogs[1].Price
-		if prev != curr {
-			up := curr-prev > 0
 
-			for i := 2; i < l; i++ {
-				prev = s.PriceLogs[i-1].Price
-				curr = s.PriceLogs[i].Price
-				newUp := curr-prev > 0
-				if up != newUp {
-					// 重置
-					s.Tracker.continuous = false
-					return
-				}
+		isIncreasing := true
+		isDecreasing := true
+
+		for i := 1; i < len(s.PriceLogs); i++ {
+			if s.PriceLogs[i].Price > s.PriceLogs[i-1].Price {
+				isDecreasing = false // 如果出现上涨，则不是下跌
+			} else if s.PriceLogs[i].Price < s.PriceLogs[i-1].Price {
+				isIncreasing = false // 如果出现下跌，则不是上涨
+			} else {
+				return // 平价直接再见
 			}
 		}
 
-		if !s.Tracker.continuous {
-			s.Tracker.continuous = true
-			first := s.PriceLogs[0].Price
-			last := s.PriceLogs[l-1].Price
-			diff := last - first
-			s.Shout(
-				fmt.Sprintf("连续%v次记录呈现单边走势", s.Config.Continuous),
-				fmt.Sprintf("监控时间段内价格变化为： %s(%0.2f%%)", s.ApiData.ParsePrice(diff), diff/first),
-			)
+		var trend string
+		if isIncreasing {
+			trend = "上涨"
+		} else if isDecreasing {
+			trend = "下跌"
+		} else {
+			return
 		}
+		first := s.PriceLogs[0].Price
+		last := s.PriceLogs[len(s.PriceLogs)-1].Price
+		diff := last - first
+		rate := diff / first
+		list := make([]string, len(s.PriceLogs))
+		for i, p := range s.PriceLogs {
+			list[i] = s.ApiData.ParsePrice(p.Price)
+		}
+		s.Shout(
+			fmt.Sprintf("连续%v次记录呈现单边%s走势", s.Config.Continuous, trend),
+			fmt.Sprintf("监控时间段内价格变化为： %s(%0.2f%%)\n%v", s.ApiData.ParsePrice(diff), rate, strings.Join(list, "➡️")),
+		)
 	}
 }
 

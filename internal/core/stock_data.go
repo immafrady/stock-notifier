@@ -117,7 +117,6 @@ func (s *StockData) Update() {
 			if len(s.PriceLogs) > s.MaxLogs {
 				s.PriceLogs = s.PriceLogs[:s.MaxLogs]
 			}
-			fmt.Println("触发监控")
 			// 开始触发监控
 			s.TrackWelcome()
 			s.TrackPercentDiff()
