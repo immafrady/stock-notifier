@@ -79,7 +79,7 @@ func NewStockData(c *ConfigTracker) *StockData {
 
 // 判断是否可以更新
 func (s *StockData) shouldUpdate(i int, t time.Time) bool {
-	if s.Frequency%i == 0 {
+	if i%s.Frequency == 0 {
 		// 根据频率判断
 		return true
 	}
@@ -117,6 +117,7 @@ func (s *StockData) Update() {
 			if len(s.PriceLogs) > s.MaxLogs {
 				s.PriceLogs = s.PriceLogs[:s.MaxLogs]
 			}
+			fmt.Println("触发监控")
 			// 开始触发监控
 			s.TrackWelcome()
 			s.TrackPercentDiff()
