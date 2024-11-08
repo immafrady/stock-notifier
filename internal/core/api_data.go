@@ -45,7 +45,7 @@ func NewApiData(searchCode string) *ApiData {
 
 	if strings.HasPrefix(str, "v_pv_none_match") {
 		return nil
-	} else {
+	} else if len(str) > 5 {
 		data := &ApiData{
 			Exchange: str[2:4],
 		}
@@ -86,8 +86,10 @@ func NewApiData(searchCode string) *ApiData {
 			return nil
 		}
 		return data
+	} else {
+		log.Println("[error]接收字符串不合要求：", str)
+		return nil
 	}
-
 }
 
 func parsefloat64(str string) float64 {

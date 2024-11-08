@@ -6,11 +6,20 @@ import (
 )
 
 type Tracker struct {
+	welcome         bool
 	priceDiff       bool
 	percentDiff     bool
 	continuous      bool
 	targetHighPrice bool
 	targetLowPrice  bool
+}
+
+// TrackWelcome 首次弹出提醒
+func (s *StockData) TrackWelcome() {
+	if !s.Tracker.welcome {
+		s.Tracker.welcome = true
+		s.Shout("开始监控", "")
+	}
 }
 
 // TrackPriceDiff 监控价格差

@@ -106,7 +106,7 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 func (s *StockData) Update() {
 	if s.mutex.TryLock() {
 		apiData := NewApiData(s.Config.Code)
-		if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) {
+		if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) || apiData != nil {
 			// 只有当更新时间大于最新时间时，才会取更新
 			s.ApiData = apiData
 			// 更新日志
@@ -118,6 +118,7 @@ func (s *StockData) Update() {
 				s.PriceLogs = s.PriceLogs[:s.MaxLogs]
 			}
 			// 开始触发监控
+			s.TrackWelcome()
 			s.TrackPercentDiff()
 			s.TrackPriceDiff()
 			s.TrackContinuous()
