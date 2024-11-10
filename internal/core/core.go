@@ -24,7 +24,7 @@ func (c *Core) Updates(t time.Time, init bool) {
 
 func Run(c *Config) {
 	core := &Core{}
-	core.ticker = time.NewTicker(5 * time.Second)
+	core.ticker = time.NewTicker(1 * time.Second)
 	defer core.ticker.Stop()
 
 	if c.Trackers == nil {
@@ -43,11 +43,19 @@ func Run(c *Config) {
 		if runtime.GOOS == "darwin" {
 			log.Println("mac系统请将【脚本编辑器】的消息权限打开，并将其添加到勿扰模式的白名单中")
 		}
+		count := 0
 		for {
 			select {
 			case t := <-core.ticker.C:
-				core.i++
-				core.Updates(t, false)
+				count++
+				if count%5 == 0 {
+					core.i++
+					core.Updates(t, false)
+				}
+				if count%5 == 1 {
+					// 下一秒展示消息
+					ShowNotifications()
+				}
 			}
 		}
 	}

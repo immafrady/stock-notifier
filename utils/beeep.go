@@ -5,6 +5,11 @@ import (
 	"log"
 )
 
+type Msg struct {
+	Title   string
+	Message string
+}
+
 func Notify(title, message string) {
 	err := beeep.Notify(title, message, "")
 	if err != nil {

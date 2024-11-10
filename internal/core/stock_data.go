@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/immafrady/stock-notifier/utils"
 	"log"
 	"strconv"
 	"strings"
@@ -135,8 +134,8 @@ func (s *StockData) Update() {
 			s.TrackTargetHighPrice()
 			s.TrackTargetLowPrice()
 		}
+		s.mutex.Unlock()
 	}
-	s.mutex.Unlock()
 }
 
 // Shout 发送通知
@@ -146,5 +145,5 @@ func (s *StockData) Shout(title, message string) {
 		s.ApiData.ParsePrice(s.ApiData.Current),
 		s.ApiData.Percentage,
 	)
-	utils.Notify(base+title, message)
+	SendToPending(base, title, message)
 }
