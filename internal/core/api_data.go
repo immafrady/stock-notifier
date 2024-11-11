@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"github.com/immafrady/stock-notifier/utils"
+	"github.com/shopspring/decimal"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"io"
@@ -93,9 +94,10 @@ func NewApiData(searchCode string) *ApiData {
 }
 
 func parseFloat64(str string) float64 {
-	f64, err := strconv.ParseFloat(str, 64)
+	d, err := decimal.NewFromString(str)
 	if err != nil {
 		log.Printf("[error]数字转化错误 - %v: %s", str, err)
 	}
-	return f64
+	res, _ := d.Float64()
+	return res
 }
