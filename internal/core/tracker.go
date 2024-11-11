@@ -53,12 +53,7 @@ func (s *StockData) TrackPercentDiff() {
 			curr := s.PriceLogs[l-1].Price
 			diff := (curr - prev) / prev
 			if math.Abs(diff) > s.PercentDiff {
-				if !s.Tracker.percentDiff {
-					s.Tracker.percentDiff = true
-					s.Shout("当前异动已超监控值", fmt.Sprintf("监控时间段内价格变化为： %0.2f%%", diff))
-				}
-			} else {
-				s.Tracker.percentDiff = false
+				s.Shout("当前异动已超监控值", fmt.Sprintf("监控时间段内价格变化为： %0.2f%%", diff*100))
 			}
 
 		}
