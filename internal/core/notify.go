@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/immafrady/stock-notifier/utils"
+	"log"
 )
 
 type MsgRecord struct {
@@ -28,6 +29,7 @@ func init() {
 }
 
 func SendToPending(tag, title, message string) {
+	log.Printf("发送消息\ntag:%s\ntitle:%s\nmessage:%s\n", tag, title, message)
 	msgChan <- MsgRecord{Tag: tag, Title: title, Message: message}
 }
 

@@ -140,7 +140,7 @@ func (s *StockData) Update() {
 
 // Shout 发送通知
 func (s *StockData) Shout(title, message string) {
-	base := fmt.Sprintf("【%s %s(%.2f%%)】: ",
+	base := fmt.Sprintf("【%s %s(%.2f%%)】",
 		s.ApiData.Name,
 		s.ApiData.ParsePrice(s.ApiData.Current),
 		s.ApiData.Percentage,
