@@ -43,6 +43,9 @@ func Run(c *Config) {
 		if runtime.GOOS == "darwin" {
 			log.Println("mac系统请将【脚本编辑器】的消息权限打开，并将其添加到勿扰模式的白名单中")
 		}
+		// 设置播报
+		core.SetupBroadcast(c)
+		// 开始循环
 		count := 0
 		for {
 			select {

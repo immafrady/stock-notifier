@@ -30,6 +30,12 @@ type ConfigUpdate struct {
 	To   TimeString `json:"to" yaml:"to"`
 }
 
+// ConfigBroadcast 播报时间点
+type ConfigBroadcast struct {
+	Time  string `json:"time" yaml:"time"`
+	Label string `json:"label" yaml:"label"`
+}
+
 func (u ConfigUpdate) Range() (from, to time.Time) {
 	now := time.Now()
 	year, month, day := now.Date()
@@ -52,8 +58,9 @@ type ConfigTracker struct {
 }
 
 type Config struct {
-	Updates  []*ConfigUpdate  `json:"updates" yaml:"updates"`
-	Trackers []*ConfigTracker `json:"trackers" yaml:"trackers"`
+	Updates   []*ConfigUpdate    `json:"updates" yaml:"updates"`
+	Broadcast []*ConfigBroadcast `json:"broadcast" yaml:"broadcast"`
+	Trackers  []*ConfigTracker   `json:"trackers" yaml:"trackers"`
 }
 
 // newYamlConfig yaml的配置
