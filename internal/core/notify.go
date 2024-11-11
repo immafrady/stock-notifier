@@ -4,51 +4,61 @@ import (
 	"fmt"
 	"github.com/immafrady/stock-notifier/utils"
 	"log"
+	"strings"
 )
 
 type MsgRecord struct {
-	Tag     string
-	Title   string
-	Message string
+	Tag      string
+	Title    string
+	Messages []string
 }
 
-var m map[string][]utils.Msg
+var m map[string][]MsgRecord
 var msgChan chan MsgRecord
 
 func init() {
-	m = make(map[string][]utils.Msg)
+	m = make(map[string][]MsgRecord)
 	msgChan = make(chan MsgRecord)
 	go func() {
 		for {
 			select {
 			case msg := <-msgChan:
-				m[msg.Tag] = append(m[msg.Tag], utils.Msg{Title: msg.Title, Message: msg.Message})
+				m[msg.Tag] = append(m[msg.Tag], msg)
 			}
 		}
 	}()
 }
 
 func SendToPending(tag, title, message string) {
-	log.Printf("发送消息\ntag:%s\ntitle:%s\nmessage:%s\n", tag, title, message)
-	msgChan <- MsgRecord{Tag: tag, Title: title, Message: message}
+	rawMessages := strings.Split(message, "\n")
+	var messages []string
+	for _, rm := range rawMessages {
+		if rm != "" {
+			messages = append(messages, rm)
+		}
+	}
+	log.Printf("发送消息\n> tag: %s\n> title: %s\n> message: %s\n\n", tag, title, strings.Join(messages, "\n > "))
+	msgChan <- MsgRecord{Tag: tag, Title: title, Messages: messages}
 }
 
 func ShowNotifications() {
 	for tag, msgs := range m {
+		title := tag
 		if len(msgs) > 1 {
-			title := fmt.Sprintf("%s (%v条通知)", tag, len(msgs))
-			var messages string
-			for _, msg := range msgs {
-				messages += fmt.Sprintf("* %s\n", msg.Title)
-				if msg.Message != "" {
-					messages += fmt.Sprintf("%s\n", msg.Message)
-				}
-				messages += "--------------\n"
-			}
-			utils.Notify(title, messages)
-		} else if len(msgs) == 1 {
-			utils.Notify(tag, fmt.Sprintf("* %s\n%s", msgs[0].Title, msgs[0].Message))
+			title += fmt.Sprintf(" (%v条通知)", len(msgs))
 		}
+
+		var messages []string
+		for _, msg := range msgs {
+			message := fmt.Sprintf("# %s\n", msg.Title)
+			if len(msg.Messages) > 0 {
+				for _, content := range msg.Messages {
+					message += fmt.Sprintf("> %s\n", content)
+				}
+			}
+			messages = append(messages, message)
+		}
+		utils.Notify(title, strings.Join(messages, "------------\n"))
 	}
-	m = make(map[string][]utils.Msg) // 重置
+	m = make(map[string][]MsgRecord) // 重置
 }
