@@ -54,13 +54,13 @@ func NewApiData(searchCode string) *ApiData {
 		strs := strings.Split(str, "~")
 
 		data.Name = strs[1]
-		data.Opening = parsefloat64(strs[5])
-		data.YesterdayClosed = parsefloat64(strs[4])
-		data.Current = parsefloat64(strs[3])
-		data.High = parsefloat64(strs[33])
-		data.Low = parsefloat64(strs[34])
+		data.Opening = parseFloat64(strs[5])
+		data.YesterdayClosed = parseFloat64(strs[4])
+		data.Current = parseFloat64(strs[3])
+		data.High = parseFloat64(strs[33])
+		data.Low = parseFloat64(strs[34])
 		data.Diff = data.Current - data.YesterdayClosed
-		data.Percentage = parsefloat64(strs[32])
+		data.Percentage = parseFloat64(strs[32])
 
 		var (
 			timeTmpl string
@@ -92,8 +92,8 @@ func NewApiData(searchCode string) *ApiData {
 	}
 }
 
-func parsefloat64(str string) float64 {
-	f64, err := strconv.ParseFloat(str, 32)
+func parseFloat64(str string) float64 {
+	f64, err := strconv.ParseFloat(str, 64)
 	if err != nil {
 		log.Printf("[error]数字转化错误 - %v: %s", str, err)
 	}
