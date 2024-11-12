@@ -107,19 +107,19 @@ func (s *StockData) TrackTargetHighPrice() {
 		if s.ApiData.Current > s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 2 {
 			s.Tracker.targetHighPrice = 2
 			s.Shout(
-				fmt.Sprintf("超越:)目标高位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				fmt.Sprintf("超越目标高位%s :)", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
 				"",
 			)
 		} else if s.ApiData.Current == s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 1 {
 			s.Tracker.targetHighPrice = 1
 			s.Shout(
-				fmt.Sprintf("达到--目标高位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				fmt.Sprintf("达到目标高位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
 				"",
 			)
 		} else if s.ApiData.Current < s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 0 {
 			s.Tracker.targetHighPrice = 0
 			s.Shout(
-				fmt.Sprintf("跌破:(目标高位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				fmt.Sprintf("跌破目标高位%s :(", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
 				"",
 			)
 		}
@@ -130,21 +130,21 @@ func (s *StockData) TrackTargetHighPrice() {
 func (s *StockData) TrackTargetLowPrice() {
 	if s.Config.TargetLowPrice > 0 {
 		if s.ApiData.Current < s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 2 {
-			s.Tracker.targetHighPrice = 2
+			s.Tracker.targetLowPrice = 2
 			s.Shout(
-				fmt.Sprintf("跌破:(目标低位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				fmt.Sprintf("跌破目标低位%s :(", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
 				"",
 			)
 		} else if s.ApiData.Current == s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 1 {
-			s.Tracker.targetHighPrice = 1
+			s.Tracker.targetLowPrice = 1
 			s.Shout(
-				fmt.Sprintf("达到--目标低位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				fmt.Sprintf("达到目标低位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
 				"",
 			)
 		} else if s.ApiData.Current > s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 0 {
-			s.Tracker.targetHighPrice = 0
+			s.Tracker.targetLowPrice = 0
 			s.Shout(
-				fmt.Sprintf("超越:)目标低位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				fmt.Sprintf("超越目标低位%s :)", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
 				"",
 			)
 		}
