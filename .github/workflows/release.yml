@@ -37,10 +37,21 @@ jobs:
           fi
           go build -o $output
 
+      - name: Define OS
+        id: define_os
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          echo "OS_NAME=linux" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          echo "OS_NAME=darwin" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+          echo "OS_NAME=windows" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: myapp-${{ matrix.os }}-${{ matrix.arch }}
+          name: stock-notifier-${{ github.ref_name }}-${{ steps.define_os.outputs.OS_NAME }}-${{ matrix.arch }}
           path: build/*
 
   publish:
