@@ -1,78 +1,41 @@
-name: Release
+name: goreleaser
 
 on:
+  pull_request:
   push:
+    # run only against tags
     tags:
-      - 'v*'  # 仅当打 tag 时触发
+      - "*"
+
+permissions:
+  contents: write
+  # packages: write
+  # issues: write
+  # id-token: write
 
 jobs:
-  release:
-    name: Build and Release
+  goreleaser:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        # 定义目标平台
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        arch: [amd64, arm64]
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.23'  # 指定所需 Go 版本
-
-      - name: Build binary
+          go-version: stable
+      # More assembly might be required: Docker logins, GPG, etc.
+      # It all depends on your needs.
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          # 'latest', 'nightly', or a semver
+          version: "~> v2"
+          args: release --clean
         env:
-          GOOS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'darwin' || 'windows' }}
-          GOARCH: ${{ matrix.arch }}
-        run: |
-          mkdir -p build
-          output="build/${{ matrix.os }}_${{ matrix.arch }}"
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            output="$output.exe"
-          fi
-          go build -o $output
-
-      - name: Define OS
-        id: define_os
-        run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-          echo "OS_NAME=linux" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          echo "OS_NAME=darwin" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-          echo "OS_NAME=windows" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: stock-notifier-${{ github.ref_name }}-${{ steps.define_os.outputs.OS_NAME }}-${{ matrix.arch }}
-          path: build/*
-
-  publish:
-    name: Publish Release
-    runs-on: ubuntu-latest
-    needs: release
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: build
-
-      - name: Publish to GitHub Releases
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "build/*"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: "Automated release for version ${{ github.ref_name }}"
-          draft: false
-          prerelease: false
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
