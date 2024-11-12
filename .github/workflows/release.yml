@@ -36,20 +36,22 @@ jobs:
             output="$output.exe"
           fi
           go build -o $output
-      - name: Map OS
-        id: map_os
+
+      - name: Define OS
+        id: define_os
         run: |
           if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            echo "::set-output name=OS_NAME::linux"
+          echo "OS_NAME=linux" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            echo "::set-output name=OS_NAME::darwin"
+          echo "OS_NAME=darwin" >> $GITHUB_OUTPUT
           elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            echo "::set-output name=OS_NAME::windows"
+          echo "OS_NAME=windows" >> $GITHUB_OUTPUT
           fi
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: stock-notifier-github.ref_name-${{ steps.map_os.outputs.OS_NAME }}-${{ matrix.arch }}
+          name: stock-notifier-${{ github.ref_name }}-${{ steps.define_os.outputs.OS_NAME }}-${{ matrix.arch }}
           path: build/*
 
   publish:
@@ -68,7 +70,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/*"
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: "Automated release for version ${{ github.ref_name }}"

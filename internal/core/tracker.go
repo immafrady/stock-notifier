@@ -11,8 +11,8 @@ type Tracker struct {
 	priceDiff       bool
 	percentDiff     bool
 	continuous      bool // deprecated
-	targetHighPrice bool
-	targetLowPrice  bool
+	targetHighPrice int
+	targetLowPrice  int
 }
 
 // TrackWelcome 首次弹出提醒
@@ -104,16 +104,24 @@ func (s *StockData) TrackContinuous() {
 // TrackTargetHighPrice 超越目标价位
 func (s *StockData) TrackTargetHighPrice() {
 	if s.Config.TargetHighPrice > 0 {
-		if s.ApiData.Current > s.Config.TargetHighPrice {
-			if !s.Tracker.targetHighPrice {
-				s.Tracker.targetHighPrice = true
-				s.Shout(
-					fmt.Sprintf("超越目标价位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
-					"",
-				)
-			}
-		} else {
-			s.Tracker.targetHighPrice = false
+		if s.ApiData.Current > s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 2 {
+			s.Tracker.targetHighPrice = 2
+			s.Shout(
+				fmt.Sprintf("超越目标高位%s :)", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				"",
+			)
+		} else if s.ApiData.Current == s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 1 {
+			s.Tracker.targetHighPrice = 1
+			s.Shout(
+				fmt.Sprintf("达到目标高位%s", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				"",
+			)
+		} else if s.ApiData.Current < s.Config.TargetHighPrice && s.Tracker.targetHighPrice != 0 {
+			s.Tracker.targetHighPrice = 0
+			s.Shout(
+				fmt.Sprintf("跌破目标高位%s :(", s.ApiData.ParsePrice(s.Config.TargetHighPrice)),
+				"",
+			)
 		}
 	}
 }
@@ -121,16 +129,24 @@ func (s *StockData) TrackTargetHighPrice() {
 // TrackTargetLowPrice 跌破目标价位
 func (s *StockData) TrackTargetLowPrice() {
 	if s.Config.TargetLowPrice > 0 {
-		if s.ApiData.Current < s.Config.TargetLowPrice {
-			if !s.Tracker.targetLowPrice {
-				s.Tracker.targetLowPrice = true
-				s.Shout(
-					fmt.Sprintf("跌破目标价位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
-					"",
-				)
-			}
-		} else {
-			s.Tracker.targetLowPrice = false
+		if s.ApiData.Current < s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 2 {
+			s.Tracker.targetLowPrice = 2
+			s.Shout(
+				fmt.Sprintf("跌破目标低位%s :(", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				"",
+			)
+		} else if s.ApiData.Current == s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 1 {
+			s.Tracker.targetLowPrice = 1
+			s.Shout(
+				fmt.Sprintf("达到目标低位%s", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				"",
+			)
+		} else if s.ApiData.Current > s.Config.TargetLowPrice && s.Tracker.targetLowPrice != 0 {
+			s.Tracker.targetLowPrice = 0
+			s.Shout(
+				fmt.Sprintf("超越目标低位%s :)", s.ApiData.ParsePrice(s.Config.TargetLowPrice)),
+				"",
+			)
 		}
 	}
 }
