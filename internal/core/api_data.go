@@ -36,7 +36,7 @@ func (a ApiData) ParsePrice(v float64) string {
 	return strconv.FormatFloat(v, 'f', prec, 64)
 }
 
-func NewApiData(searchCode string) *ApiData {
+func NewApiData(searchCode string) (*ApiData, bool) {
 	str := utils.Request("http://qt.gtimg.cn/q=" + searchCode)
 
 	// 转换为utf8
@@ -45,7 +45,7 @@ func NewApiData(searchCode string) *ApiData {
 	str = string(d)
 
 	if strings.HasPrefix(str, "v_pv_none_match") {
-		return nil
+		return nil, true
 	} else if len(str) > 5 {
 		data := &ApiData{
 			Exchange: str[2:4],
@@ -79,17 +79,18 @@ func NewApiData(searchCode string) *ApiData {
 			// 2024-11-06 15:55:34
 			timeTmpl = "2006-01-02 15:04:05"
 		default:
-			return nil
+			log.Printf("[error]不支持的股市 - %s", data.Exchange)
+			return nil, true
 		}
 		data.UpdateAt, err = time.Parse(timeTmpl, strs[30])
 		if err != nil {
 			log.Printf("[error]日期格式错误 - %v: %s", strs[30], err)
-			return nil
+			return nil, false
 		}
-		return data
+		return data, false
 	} else {
 		log.Println("[error]接收字符串不合要求：", str)
-		return nil
+		return nil, false
 	}
 }
 

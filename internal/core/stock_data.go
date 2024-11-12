@@ -118,11 +118,13 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 // Update 核心更新逻辑
 func (s *StockData) Update() {
 	if s.mutex.TryLock() {
-		apiData := NewApiData(s.Config.Code)
+		apiData, done := NewApiData(s.Config.Code)
 		if apiData == nil {
-			// 没有数据，remove
-			s.Disable = true
-			log.Printf("代码：%s查询失败，停止查询", s.Config.Code)
+			if done {
+				// 没有数据&终止，remove
+				s.Disable = true
+				log.Printf("代码：%s查询失败，停止查询", s.Config.Code)
+			}
 		} else {
 			if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) {
 				// 只有当更新时间大于最新时间时，才会取更新
