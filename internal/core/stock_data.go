@@ -12,6 +12,7 @@ import (
 // StockData 完整数据
 type StockData struct {
 	mutex       sync.Mutex
+	Disable     bool           // 如果遇到异常，禁用
 	Frequency   int            // 格式化后的更新频率
 	PercentDiff float64        // 格式化后的百分比差额
 	MaxLogs     int            // 最多的log数
@@ -88,6 +89,9 @@ func NewStockData(c *ConfigTracker) *StockData {
 
 // 判断是否可以更新
 func (s *StockData) shouldUpdate(i int, t time.Time) bool {
+	if s.Disable {
+		return false
+	}
 	if i%s.Frequency == 0 {
 		// 根据频率判断
 		return true
@@ -115,24 +119,30 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 func (s *StockData) Update() {
 	if s.mutex.TryLock() {
 		apiData := NewApiData(s.Config.Code)
-		if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) || apiData != nil {
-			// 只有当更新时间大于最新时间时，才会取更新
-			s.ApiData = apiData
-			// 更新日志
-			s.PriceLogs = append(s.PriceLogs, &PriceLog{
-				Timestamp: apiData.UpdateAt,
-				Price:     apiData.Current,
-			})
-			if len(s.PriceLogs) > s.MaxLogs {
-				s.PriceLogs = s.PriceLogs[:s.MaxLogs]
+		if apiData == nil {
+			// 没有数据，remove
+			s.Disable = true
+			log.Printf("代码：%s查询失败，停止查询", s.Config.Code)
+		} else {
+			if s.ApiData == nil || apiData.UpdateAt.After(s.ApiData.UpdateAt) {
+				// 只有当更新时间大于最新时间时，才会取更新
+				s.ApiData = apiData
+				// 更新日志
+				s.PriceLogs = append(s.PriceLogs, &PriceLog{
+					Timestamp: apiData.UpdateAt,
+					Price:     apiData.Current,
+				})
+				if len(s.PriceLogs) > s.MaxLogs {
+					s.PriceLogs = s.PriceLogs[:s.MaxLogs]
+				}
+				// 开始触发监控
+				s.TrackWelcome()
+				s.TrackPercentDiff()
+				s.TrackPriceDiff()
+				s.TrackContinuous()
+				s.TrackTargetHighPrice()
+				s.TrackTargetLowPrice()
 			}
-			// 开始触发监控
-			s.TrackWelcome()
-			s.TrackPercentDiff()
-			s.TrackPriceDiff()
-			s.TrackContinuous()
-			s.TrackTargetHighPrice()
-			s.TrackTargetLowPrice()
 		}
 		s.mutex.Unlock()
 	}
