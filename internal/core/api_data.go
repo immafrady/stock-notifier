@@ -79,17 +79,17 @@ func NewApiData(searchCode string) (*ApiData, bool) {
 			// 2024-11-06 15:55:34
 			timeTmpl = "2006-01-02 15:04:05"
 		default:
-			log.Printf("[error]不支持的股市 - %s", data.Exchange)
+			log.Printf("[error]%s 不支持的股市 - %s", searchCode, data.Exchange)
 			return nil, true
 		}
 		data.UpdateAt, err = time.Parse(timeTmpl, strs[30])
 		if err != nil {
-			log.Printf("[error]日期格式错误 - %v: %s", strs[30], err)
+			log.Printf("[error]%s 日期格式错误 - %v: %s", searchCode, strs[30], err)
 			return nil, false
 		}
 		return data, false
 	} else {
-		log.Println("[error]接收字符串不合要求：", str)
+		log.Printf("[error]%s 接收字符串不合要求: \n原始值: %s\n解析后的值: %s", searchCode, string(d), str)
 		return nil, false
 	}
 }
