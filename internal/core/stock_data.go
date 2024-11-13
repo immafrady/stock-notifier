@@ -99,7 +99,9 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 	if s.Config.Updates != nil {
 		if s.ApiData != nil {
 			// 如果有获取过数据，以获取数据时为准
-			t = s.ApiData.UpdateAt
+			if t.Sub(s.ApiData.UpdateAt).Abs() < time.Minute {
+				t = s.ApiData.UpdateAt
+			}
 		}
 		for _, update := range s.Config.Updates {
 			from, to := update.Range()
