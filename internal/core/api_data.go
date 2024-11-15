@@ -24,6 +24,7 @@ type ApiData struct {
 	High            float64   // 当日最高
 	Diff            float64   // 当日差价
 	Percentage      float64   // 当前涨跌幅
+	RealTime        float64   // 基金的实时净值
 	UpdateAt        time.Time // 更新时间
 }
 
@@ -37,12 +38,12 @@ func (a ApiData) ParsePrice(v float64) string {
 }
 
 func NewApiData(searchCode string) (*ApiData, bool) {
-	str := utils.Request("http://qt.gtimg.cn/q=" + searchCode)
+	rawStr := utils.Request("http://qt.gtimg.cn/q=" + searchCode)
 
 	// 转换为utf8
-	reader := transform.NewReader(bytes.NewReader([]byte(str)), simplifiedchinese.GBK.NewDecoder())
+	reader := transform.NewReader(bytes.NewReader([]byte(rawStr)), simplifiedchinese.GBK.NewDecoder())
 	d, _ := io.ReadAll(reader)
-	str = string(d)
+	str := string(d)
 
 	if strings.HasPrefix(str, "v_pv_none_match") {
 		return nil, true
@@ -72,6 +73,10 @@ func NewApiData(searchCode string) (*ApiData, bool) {
 			// 20241107151312
 			timeTmpl = "20060102150405"
 			data.Classify = strs[61] // 补充一下分类，如果是ETF、LOF做特殊处理
+			if data.Classify == "ETF" {
+				data.RealTime = parseFloat64(strs[78]) // 只有ETF存在实时净值
+				// strs[78]: 昨收净值
+			}
 		case "hk":
 			// 2024/11/07 14:58:20
 			timeTmpl = "2006/01/02 15:04:05"
@@ -89,7 +94,7 @@ func NewApiData(searchCode string) (*ApiData, bool) {
 		}
 		return data, false
 	} else {
-		log.Printf("[error]%s 接收字符串不合要求: \n原始值: %s\n解析后的值: %s", searchCode, string(d), str)
+		log.Printf("[error]%s 接收字符串不合要求: \n原始值: %s\n解析后的值: %s", searchCode, rawStr, str)
 		return nil, false
 	}
 }

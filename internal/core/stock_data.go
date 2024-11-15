@@ -11,15 +11,16 @@ import (
 
 // StockData 完整数据
 type StockData struct {
-	mutex       sync.Mutex
-	Disable     bool           // 如果遇到异常，禁用
-	Frequency   int            // 格式化后的更新频率
-	PercentDiff float64        // 格式化后的百分比差额
-	MaxLogs     int            // 最多的log数
-	ApiData     *ApiData       // 单词数据
-	Config      *ConfigTracker // 配置
-	Tracker     *Tracker
-	PriceLogs   []*PriceLog
+	mutex               sync.Mutex
+	Disable             bool           // 如果遇到异常，禁用
+	Frequency           int            // 格式化后的更新频率
+	PercentDiff         float64        // 格式化后的百分比差额
+	RealTimePercentDiff float64        // 格式化后的溢价百分比差额
+	MaxLogs             int            // 最多的log数
+	ApiData             *ApiData       // 单词数据
+	Config              *ConfigTracker // 配置
+	Tracker             *Tracker
+	PriceLogs           []*PriceLog
 }
 
 // PriceLog 价格日志
@@ -40,6 +41,14 @@ func NewStockData(c *ConfigTracker) *StockData {
 		value, err := strconv.ParseFloat(percent, 64)
 		if err == nil {
 			data.PercentDiff = value / 100
+		}
+	}
+	{
+		// 处理溢价率
+		percent := strings.TrimSuffix(c.RealTimePercentDiff, "%")
+		value, err := strconv.ParseFloat(percent, 64)
+		if err == nil {
+			data.RealTimePercentDiff = value / 100
 		}
 	}
 	{
@@ -143,6 +152,7 @@ func (s *StockData) Update() {
 				s.TrackWelcome()
 				s.TrackPercentDiff()
 				s.TrackPriceDiff()
+				s.TrackRealTimePercentDiff()
 				s.TrackContinuous()
 				s.TrackTargetHighPrice()
 				s.TrackTargetLowPrice()
