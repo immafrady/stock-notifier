@@ -102,25 +102,24 @@ func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 		return false
 	}
 	if i%s.Frequency == 0 {
-		// 根据频率判断
-		return true
-	}
-	if s.Config.Updates != nil {
-		if s.ApiData != nil {
-			// 如果有获取过数据，以获取数据时为准
-			if t.Sub(s.ApiData.UpdateAt).Abs() < time.Minute {
-				t = s.ApiData.UpdateAt
+		// 根据频率判断，再进入下层判断
+		if s.Config.Updates != nil {
+			if s.ApiData != nil {
+				// 如果有获取过数据，以获取数据时为准
+				if t.Sub(s.ApiData.UpdateAt).Abs() < time.Minute {
+					t = s.ApiData.UpdateAt
+				}
 			}
-		}
-		for _, update := range s.Config.Updates {
-			from, to := update.Range()
-			if t.After(from) && t.Before(to) {
-				return true
+			for _, update := range s.Config.Updates {
+				from, to := update.Range()
+				if t.After(from) && t.Before(to) {
+					return true
+				}
 			}
+		} else {
+			// 没有的时候也给允许吧
+			return true
 		}
-	} else {
-		// 没有的时候也给允许吧
-		return true
 	}
 
 	return false
