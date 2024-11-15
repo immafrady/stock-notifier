@@ -1,7 +1,8 @@
-package core
+package stock_data
 
 import (
 	"fmt"
+	"github.com/immafrady/stock-notifier/internal/core/config"
 	"log"
 	"strconv"
 	"strings"
@@ -12,13 +13,13 @@ import (
 // StockData 完整数据
 type StockData struct {
 	mutex               sync.Mutex
-	Disable             bool           // 如果遇到异常，禁用
-	Frequency           int            // 格式化后的更新频率
-	PercentDiff         float64        // 格式化后的百分比差额
-	RealTimePercentDiff float64        // 格式化后的溢价百分比差额
-	MaxLogs             int            // 最多的log数
-	ApiData             *ApiData       // 单词数据
-	Config              *ConfigTracker // 配置
+	Disable             bool                  // 如果遇到异常，禁用
+	Frequency           int                   // 格式化后的更新频率
+	PercentDiff         float64               // 格式化后的百分比差额
+	RealTimePercentDiff float64               // 格式化后的溢价百分比差额
+	MaxLogs             int                   // 最多的log数
+	ApiData             *ApiData              // 单词数据
+	Config              *config.ConfigTracker // 配置
 	Tracker             *Tracker
 	PriceLogs           []*PriceLog
 }
@@ -30,7 +31,7 @@ type PriceLog struct {
 }
 
 // NewStockData 新建一个
-func NewStockData(c *ConfigTracker) *StockData {
+func NewStockData(c *config.ConfigTracker) *StockData {
 	data := &StockData{
 		Config:  c,
 		Tracker: &Tracker{},
@@ -96,8 +97,8 @@ func NewStockData(c *ConfigTracker) *StockData {
 	return data
 }
 
-// 判断是否可以更新
-func (s *StockData) shouldUpdate(i int, t time.Time) bool {
+// ShouldUpdate 判断是否可以更新
+func (s *StockData) ShouldUpdate(i int, t time.Time) bool {
 	if s.Disable {
 		return false
 	}

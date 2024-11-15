@@ -1,6 +1,9 @@
 package core
 
 import (
+	"github.com/immafrady/stock-notifier/internal/core/broadcast"
+	"github.com/immafrady/stock-notifier/internal/core/config"
+	"github.com/immafrady/stock-notifier/internal/core/stock_data"
 	"log"
 	"runtime"
 	"time"
@@ -9,21 +12,22 @@ import (
 type Core struct {
 	ticker    *time.Ticker
 	i         int
-	Stocks    []*StockData
-	Broadcast *Broadcast
+	Stocks    []*stock_data.StockData
+	Broadcast *broadcast.Broadcast
 }
 
 // Updates 更新数据
 func (c *Core) Updates(t time.Time, init bool) {
 	for _, stock := range c.Stocks {
-		if init || stock.shouldUpdate(c.i, t) {
+		if init || stock.ShouldUpdate(c.i, t) {
 			// 进入协程
 			go stock.Update()
 		}
 	}
 }
 
-func Run(c *Config) {
+func Run(cfgFile string) {
+	c := config.NewConfig(cfgFile)
 	core := &Core{}
 	core.ticker = time.NewTicker(1 * time.Second)
 	defer core.ticker.Stop()
@@ -31,10 +35,10 @@ func Run(c *Config) {
 	if c.Trackers == nil {
 		log.Fatalln("没有关注的股票")
 	} else {
-		core.Stocks = make([]*StockData, len(c.Trackers))
+		core.Stocks = make([]*stock_data.StockData, len(c.Trackers))
 		var searchCodes []string
 		for i, t := range c.Trackers {
-			core.Stocks[i] = NewStockData(t)
+			core.Stocks[i] = stock_data.NewStockData(t)
 			searchCodes = append(searchCodes, t.Code)
 		}
 
@@ -46,7 +50,7 @@ func Run(c *Config) {
 		}
 
 		// 设置播报
-		core.Broadcast = NewBroadcast(core, c)
+		core.Broadcast = broadcast.NewBroadcast(core.Stocks, c)
 		// 开始循环
 		count := 0
 		for {
@@ -59,7 +63,7 @@ func Run(c *Config) {
 				}
 				if count%5 == 1 {
 					// 下一秒展示消息
-					ShowNotifications()
+					stock_data.ShowNotifications()
 				}
 				core.Broadcast.Broadcast(t)
 			}

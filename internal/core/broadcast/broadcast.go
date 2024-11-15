@@ -1,27 +1,29 @@
-package core
+package broadcast
 
 import (
 	"fmt"
+	"github.com/immafrady/stock-notifier/internal/core/config"
+	"github.com/immafrady/stock-notifier/internal/core/stock_data"
 	"log"
 	"strings"
 	"time"
 )
 
-type BroadcastTrigger struct {
-	*ConfigBroadcast
+type Trigger struct {
+	*config.ConfigBroadcast
 	Next time.Time
 }
 
 type Broadcast struct {
-	Stocks   []*StockData
-	Triggers []*BroadcastTrigger
+	Stocks   []*stock_data.StockData
+	Triggers []*Trigger
 }
 
 // NewBroadcast 新增播报
-func NewBroadcast(c *Core, config *Config) *Broadcast {
+func NewBroadcast(stocks []*stock_data.StockData, config *config.Config) *Broadcast {
 	b := &Broadcast{
-		Stocks:   c.Stocks,
-		Triggers: make([]*BroadcastTrigger, len(config.Broadcast)),
+		Stocks:   stocks,
+		Triggers: make([]*Trigger, len(config.Broadcast)),
 	}
 	t := time.Now()
 	for i, broadcast := range config.Broadcast {
@@ -30,7 +32,7 @@ func NewBroadcast(c *Core, config *Config) *Broadcast {
 		if t.After(next) {
 			next = next.Add(24 * time.Hour)
 		}
-		b.Triggers[i] = &BroadcastTrigger{
+		b.Triggers[i] = &Trigger{
 			ConfigBroadcast: broadcast,
 			Next:            next,
 		}
@@ -56,7 +58,7 @@ func (b *Broadcast) Broadcast(t time.Time) {
 					s.ApiData.ParsePrice(s.ApiData.Low),
 				))
 			}
-			SendToPending(
+			stock_data.SendToPending(
 				trigger.Label,
 				fmt.Sprintf("监控%v个股票", len(b.Stocks)),
 				strings.Join(msgs, "------------\n"),

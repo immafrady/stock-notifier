@@ -1,4 +1,4 @@
-package core
+package stock_data
 
 import (
 	"bytes"
