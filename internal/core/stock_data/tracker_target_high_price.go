@@ -11,7 +11,7 @@ type trackerTargetHighPrice struct {
 func (t *trackerTargetHighPrice) tryInitTracker(s *StockData) bool {
 	if s.Config.TargetHighPrice > 0 {
 		t.target = s.Config.TargetHighPrice
-		t.price = s.ApiData.ParsePrice(s.Config.TargetHighPrice)
+		t.price = s.ApiData.ParsePrice(t.target)
 		return true
 	}
 	return false
