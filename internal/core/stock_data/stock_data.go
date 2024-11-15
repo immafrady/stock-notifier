@@ -18,7 +18,7 @@ type StockData struct {
 	PercentDiff         float64               // 格式化后的百分比差额
 	RealTimePercentDiff float64               // 格式化后的溢价百分比差额
 	MaxLogs             int                   // 最多的log数
-	ApiData             *ApiData              // 单词数据
+	ApiData             *ApiData              // 最新数据
 	Config              *config.ConfigTracker // 配置
 	Tracker             *Tracker
 	PriceLogs           []*PriceLog
@@ -94,11 +94,13 @@ func NewStockData(c *config.ConfigTracker) *StockData {
 			}
 		}
 	}
+	// 触发首次更新
+	go data.update()
 	return data
 }
 
-// ShouldUpdate 判断是否可以更新
-func (s *StockData) ShouldUpdate(i int, t time.Time) bool {
+// shouldUpdate 判断是否可以更新
+func (s *StockData) shouldUpdate(i int, t time.Time) bool {
 	if s.Disable {
 		return false
 	}
@@ -126,8 +128,8 @@ func (s *StockData) ShouldUpdate(i int, t time.Time) bool {
 	return false
 }
 
-// Update 核心更新逻辑
-func (s *StockData) Update() {
+// update 实际的update方法
+func (s *StockData) update() {
 	if s.mutex.TryLock() {
 		apiData, done := NewApiData(s.Config.Code)
 		if apiData == nil {
@@ -159,6 +161,13 @@ func (s *StockData) Update() {
 			}
 		}
 		s.mutex.Unlock()
+	}
+}
+
+// TryUpdate 核心更新逻辑
+func (s *StockData) TryUpdate(i int, t time.Time) {
+	if s.shouldUpdate(i, t) {
+		s.update()
 	}
 }
 
