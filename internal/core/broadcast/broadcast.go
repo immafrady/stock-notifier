@@ -10,7 +10,7 @@ import (
 )
 
 type Trigger struct {
-	*config.ConfigBroadcast
+	*config.Broadcast
 	Next time.Time
 }
 
@@ -33,8 +33,8 @@ func NewBroadcast(stocks []*stock_data.StockData, config *config.Config) *Broadc
 			next = next.Add(24 * time.Hour)
 		}
 		b.Triggers[i] = &Trigger{
-			ConfigBroadcast: broadcast,
-			Next:            next,
+			Broadcast: broadcast,
+			Next:      next,
 		}
 		log.Printf("播报【%s】时间: %v", broadcast.Label, next)
 	}

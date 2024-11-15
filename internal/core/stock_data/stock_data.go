@@ -12,11 +12,11 @@ import (
 // StockData 完整数据
 type StockData struct {
 	mutex     sync.Mutex
-	Disable   bool                  // 如果遇到异常，禁用
-	Frequency int                   // 格式化后的更新频率
-	MaxLogs   int                   // 最多的log数
-	ApiData   *ApiData              // 最新数据
-	Config    *config.ConfigTracker // 配置
+	Disable   bool            // 如果遇到异常，禁用
+	Frequency int             // 格式化后的更新频率
+	MaxLogs   int             // 最多的log数
+	ApiData   *ApiData        // 最新数据
+	Config    *config.Tracker // 配置
 	Trackers  Trackers
 	PriceLogs []*PriceLog
 }
@@ -28,21 +28,21 @@ type PriceLog struct {
 }
 
 // NewStockData 新建一个
-func NewStockData(c *config.ConfigTracker) *StockData {
-	data := &StockData{
+func NewStockData(c *config.Tracker) *StockData {
+	s := &StockData{
 		Config: c,
 	}
 	{
 		// 处理缓存数
 		if c.Continuous > 2 {
-			data.MaxLogs = c.Continuous
+			s.MaxLogs = c.Continuous
 		} else {
-			data.MaxLogs = 2 // 默认两个才能发生比较
+			s.MaxLogs = 2 // 默认两个才能发生比较
 		}
 	}
 	{
 		var setDefaultFrequency = func() {
-			data.Frequency = 1
+			s.Frequency = 1
 			log.Printf("[error]【%s】转换错误,将取默认值:1", c.Frequency)
 		}
 
@@ -69,17 +69,17 @@ func NewStockData(c *config.ConfigTracker) *StockData {
 				if durationInSeconds == 0 {
 					setDefaultFrequency()
 				} else {
-					data.Frequency = durationInSeconds / 5
+					s.Frequency = durationInSeconds / 5
 				}
 			}
 		}
 	}
 	go func() {
-		data.update()
+		s.update()
 		// 延迟挂载监听
-		data.Trackers = NewTrackers(data)
+		s.Trackers = NewTrackers(s)
 	}()
-	return data
+	return s
 }
 
 // shouldUpdate 判断是否可以更新
