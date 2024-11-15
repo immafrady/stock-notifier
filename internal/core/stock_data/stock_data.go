@@ -5,23 +5,20 @@ import (
 	"github.com/immafrady/stock-notifier/internal/core/config"
 	"log"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
 
 // StockData 完整数据
 type StockData struct {
-	mutex               sync.Mutex
-	Disable             bool                  // 如果遇到异常，禁用
-	Frequency           int                   // 格式化后的更新频率
-	PercentDiff         float64               // 格式化后的百分比差额
-	RealTimePercentDiff float64               // 格式化后的溢价百分比差额
-	MaxLogs             int                   // 最多的log数
-	ApiData             *ApiData              // 最新数据
-	Config              *config.ConfigTracker // 配置
-	Tracker             *Tracker
-	PriceLogs           []*PriceLog
+	mutex     sync.Mutex
+	Disable   bool                  // 如果遇到异常，禁用
+	Frequency int                   // 格式化后的更新频率
+	MaxLogs   int                   // 最多的log数
+	ApiData   *ApiData              // 最新数据
+	Config    *config.ConfigTracker // 配置
+	Trackers  Trackers
+	PriceLogs []*PriceLog
 }
 
 // PriceLog 价格日志
@@ -33,24 +30,7 @@ type PriceLog struct {
 // NewStockData 新建一个
 func NewStockData(c *config.ConfigTracker) *StockData {
 	data := &StockData{
-		Config:  c,
-		Tracker: &Tracker{},
-	}
-	{
-		// 处理百分比
-		percent := strings.TrimSuffix(c.PercentDiff, "%")
-		value, err := strconv.ParseFloat(percent, 64)
-		if err == nil {
-			data.PercentDiff = value / 100
-		}
-	}
-	{
-		// 处理溢价率
-		percent := strings.TrimSuffix(c.RealTimePercentDiff, "%")
-		value, err := strconv.ParseFloat(percent, 64)
-		if err == nil {
-			data.RealTimePercentDiff = value / 100
-		}
+		Config: c,
 	}
 	{
 		// 处理缓存数
@@ -94,8 +74,11 @@ func NewStockData(c *config.ConfigTracker) *StockData {
 			}
 		}
 	}
-	// 触发首次更新
-	go data.update()
+	go func() {
+		data.update()
+		// 延迟挂载监听
+		data.Trackers = NewTrackers(data)
+	}()
 	return data
 }
 
@@ -151,13 +134,7 @@ func (s *StockData) update() {
 					s.PriceLogs = s.PriceLogs[:s.MaxLogs]
 				}
 				// 开始触发监控
-				s.TrackWelcome()
-				s.TrackPercentDiff()
-				s.TrackPriceDiff()
-				s.TrackRealTimePercentDiff()
-				s.TrackContinuous()
-				s.TrackTargetHighPrice()
-				s.TrackTargetLowPrice()
+				s.Trackers.Evaluate(s)
 			}
 		}
 		s.mutex.Unlock()
