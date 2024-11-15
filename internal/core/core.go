@@ -7,9 +7,10 @@ import (
 )
 
 type Core struct {
-	ticker *time.Ticker
-	i      int
-	Stocks []*StockData
+	ticker    *time.Ticker
+	i         int
+	Stocks    []*StockData
+	Broadcast *Broadcast
 }
 
 // Updates 更新数据
@@ -43,8 +44,9 @@ func Run(c *Config) {
 		if runtime.GOOS == "darwin" {
 			log.Println("mac系统请将【脚本编辑器】的消息权限打开，并将其添加到勿扰模式的白名单中")
 		}
+
 		// 设置播报
-		core.SetupBroadcast(c)
+		core.Broadcast = NewBroadcast(core, c)
 		// 开始循环
 		count := 0
 		for {
@@ -59,6 +61,7 @@ func Run(c *Config) {
 					// 下一秒展示消息
 					ShowNotifications()
 				}
+				core.Broadcast.Broadcast(t)
 			}
 		}
 	}

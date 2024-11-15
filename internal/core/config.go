@@ -32,8 +32,8 @@ type ConfigUpdate struct {
 
 // ConfigBroadcast 播报时间点
 type ConfigBroadcast struct {
-	Time  string `json:"time" yaml:"time"`
-	Label string `json:"label" yaml:"label"`
+	Time  TimeString `json:"time" yaml:"time"`
+	Label string     `json:"label" yaml:"label"`
 }
 
 func (u ConfigUpdate) Range() (from, to time.Time) {
