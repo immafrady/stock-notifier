@@ -15,12 +15,12 @@ type Trigger struct {
 }
 
 type Broadcast struct {
-	Stocks   []*stock_data.StockData
+	Stocks   map[string]*stock_data.StockData
 	Triggers []*Trigger
 }
 
 // NewBroadcast 新增播报
-func NewBroadcast(stocks []*stock_data.StockData, config *config.Config) *Broadcast {
+func NewBroadcast(stocks map[string]*stock_data.StockData, config *config.Config) *Broadcast {
 	b := &Broadcast{
 		Stocks:   stocks,
 		Triggers: make([]*Trigger, len(config.Broadcast)),

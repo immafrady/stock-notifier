@@ -12,7 +12,7 @@ import (
 type Core struct {
 	ticker    *time.Ticker
 	i         int
-	Stocks    []*stock_data.StockData
+	Stocks    map[string]*stock_data.StockData
 	Broadcast *broadcast.Broadcast
 }
 
@@ -33,11 +33,13 @@ func Run(cfgFile string) {
 	if c.Trackers == nil {
 		log.Fatalln("没有关注的股票")
 	} else {
-		core.Stocks = make([]*stock_data.StockData, len(c.Trackers))
-		var searchCodes []string
-		for i, t := range c.Trackers {
-			core.Stocks[i] = stock_data.NewStockData(t)
-			searchCodes = append(searchCodes, t.Code)
+		core.Stocks = make(map[string]*stock_data.StockData)
+		for _, t := range c.Trackers {
+			if stock := core.Stocks[t.Code]; stock != nil {
+				log.Printf("查询码[%s]已存在，仅生效第一个配置", t.Code)
+			} else {
+				core.Stocks[t.Code] = stock_data.NewStockData(t)
+			}
 		}
 
 		// 初始化更新
